@@ -14,14 +14,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  
+  var scrollController = ScrollController();
+  int pageNo=1;
   @override
   void initState() {
     super.initState();
-    context.read<HomeBloc>().add(HomeGetDataEvent(1));
+    context.read<HomeBloc>().add(HomeGetDataEvent(pageNo));
   }
 
   @override
   Widget build(BuildContext context) {
+
+    scrollController.addListener(() {
+      if(scrollController.position.maxScrollExtent == scrollController.position.pixels){
+        pageNo=pageNo+1;
+        context.read<HomeBloc>().add(HomeGetDataLazyEvent(pageNo));
+      }
+    });
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -49,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
         child: SingleChildScrollView(
+          controller: scrollController,
           child: Column(
             children: [
               Container(
@@ -96,6 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.all(16),
                         itemBuilder: (c, i) {
                           var d = state.productList![i];
+
+                          print(state.productList?.length ?? 0);
                           return ListTile(title: Text(d.name ?? ''));
                         },
                       );
@@ -104,6 +118,58 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const SizedBox.shrink();
                 },
               ),
+
+              BlocBuilder<HomeBloc, HomeState>(
+                builder: (_, state) {
+                  if (state is HomeDataLoadState) {
+                    if (state.isLoadingApi) {
+                      return const Card(
+                        child: SizedBox(
+                          height: 100,
+                          child: Center(child: Text('API Loading...')),
+                        ),
+                      );
+                    } else if (state.apiError != null) {
+                      return Card(
+                        child: SizedBox(
+                          height: 100,
+                          child: Center(child: Text('${state.apiError}')),
+                        ),
+                      );
+                    } else {
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: state.productList?.length ?? 0,
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(16),
+                        itemBuilder: (c, i) {
+                          var d = state.productList![i];
+
+                          print(state.productList?.length ?? 0);
+                          return ListTile(title: Text(d.name ?? ''));
+                        },
+                      );
+                    }
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+
+
+              BlocBuilder<HomeBloc, HomeState>(
+                builder: (_, state) {
+                  if (state is HomeDataLoadState) {
+                    if (state.lazyLoadingApi) {
+                      return Card(child: SizedBox(height: 200, child: Center(child: Text('Loading more...'))));
+                    }else{
+                      return Container();
+                    }
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+
+
             ],
           ),
         ),

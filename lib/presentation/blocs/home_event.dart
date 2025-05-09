@@ -11,6 +11,14 @@ class HomeGetDataEvent extends HomeEvent{
   @override
   List<Object?> get props => [];
 }
+class HomeGetDataLazyEvent extends HomeEvent{
+  int pageNo;
+  HomeGetDataLazyEvent(this.pageNo);
+
+
+  @override
+  List<Object?> get props => [];
+}
 
 class HomeSearchDataEvent extends HomeEvent{
 
