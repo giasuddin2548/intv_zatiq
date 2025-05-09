@@ -1,6 +1,7 @@
 
 import 'package:equatable/equatable.dart';
 
+
 abstract class HomeEvent extends  Equatable{}
 
 class HomeGetDataEvent extends HomeEvent{
@@ -21,6 +22,9 @@ class HomeGetDataLazyEvent extends HomeEvent{
 }
 
 class HomeSearchDataEvent extends HomeEvent{
+  String value;
+  HomeSearchDataEvent(this.value);
+
 
   @override
   List<Object?> get props => [];

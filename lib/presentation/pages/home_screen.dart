@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -79,45 +80,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   onChanged: (v) {
-                    // Handle search
+                    _searchData(v);
                   },
                 ),
               ),
-              BlocBuilder<HomeBloc, HomeState>(
-                builder: (_, state) {
-                  if (state is HomeDataLoadState) {
-                    if (state.isLoadingApi) {
-                      return const Card(
-                        child: SizedBox(
-                          height: 100,
-                          child: Center(child: Text('API Loading...')),
-                        ),
-                      );
-                    } else if (state.apiError != null) {
-                      return Card(
-                        child: SizedBox(
-                          height: 100,
-                          child: Center(child: Text('${state.apiError}')),
-                        ),
-                      );
-                    } else {
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: state.productList?.length ?? 0,
-                        physics: NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
-                        itemBuilder: (c, i) {
-                          var d = state.productList![i];
 
-                          print(state.productList?.length ?? 0);
-                          return ListTile(title: Text(d.name ?? ''));
-                        },
-                      );
-                    }
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
 
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (_, state) {
@@ -142,11 +109,56 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: state.productList?.length ?? 0,
                         physics: NeverScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(16),
-                        itemBuilder: (c, i) {
-                          var d = state.productList![i];
+                        itemBuilder: (context, i) {
+                          final d = state.productList![i];
 
-                          print(state.productList?.length ?? 0);
-                          return ListTile(title: Text(d.name ?? ''));
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 3,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(12),
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  imageUrl: d.img ?? '',
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    width: 60,
+                                    height: 60,
+                                    color: Colors.grey[300],
+                                    child: Icon(Icons.image, color: Colors.grey),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    width: 60,
+                                    height: 60,
+                                    color: Colors.grey[300],
+                                    child: Icon(Icons.broken_image, color: Colors.red),
+                                  ),
+                                ),
+                              ),
+                              title: Text(d.name ?? 'No Name',
+                                  style: TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (d.categoryName!= null && d.categoryName!.isNotEmpty)
+                                    Text(
+                                      d.categoryName!,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    "Price: \$${d.buyingPrice ?? 'N/A'}",
+                                    style: TextStyle(color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       );
                     }
@@ -178,5 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   Future<void> _onRefresh() async {
     context.read<HomeBloc>().add(HomeGetDataEvent(1));
+  }
+
+  void _searchData(String v) async{
+    context.read<HomeBloc>().add(HomeSearchDataEvent(v));
   }
 }
