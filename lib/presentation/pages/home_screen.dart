@@ -6,17 +6,22 @@ import 'package:intv_zatiq/presentation/blocs/home_state.dart';
 
 import '../blocs/home_event.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(HomeGetDataEvent(1));
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    context.read<HomeBloc>().add(HomeGetDataEvent(1000));
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -61,56 +66,51 @@ class HomeScreen extends StatelessWidget {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (v){
-
+                  onChanged: (v) {
+                    // Handle search
                   },
                 ),
               ),
-
-
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (_, state) {
                   if (state is HomeDataLoadState) {
                     if (state.isLoadingApi) {
-                      return Card(
-                          child: SizedBox(
-                              height: 100,
-                              child: Center(
-                              child: Text('API Loading...'))
-                          ));
+                      return const Card(
+                        child: SizedBox(
+                          height: 100,
+                          child: Center(child: Text('API Loading...')),
+                        ),
+                      );
                     } else if (state.apiError != null) {
                       return Card(
-                          child: SizedBox(
-                              height: 100,
-                              child: Center(
-                                  child: Text('${state.apiError}'))
-                          ));
+                        child: SizedBox(
+                          height: 100,
+                          child: Center(child: Text('${state.apiError}')),
+                        ),
+                      );
                     } else {
                       return ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: state.productList?.length??0,
-                          physics: NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(16),
-                          itemBuilder: (c, i){
-
-
-                            var d= state.productList![i];
-                            return ListTile(title: Text(d.name??''),);
-                          });
+                        shrinkWrap: true,
+                        itemCount: state.productList?.length ?? 0,
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(16),
+                        itemBuilder: (c, i) {
+                          var d = state.productList![i];
+                          return ListTile(title: Text(d.name ?? ''));
+                        },
+                      );
                     }
                   }
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 },
               ),
-
             ],
           ),
         ),
       ),
     );
   }
-
   Future<void> _onRefresh() async {
-    await Future.delayed(const Duration(seconds: 2));
+    context.read<HomeBloc>().add(HomeGetDataEvent(1));
   }
 }

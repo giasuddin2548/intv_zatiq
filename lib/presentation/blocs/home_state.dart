@@ -27,5 +27,5 @@ class HomeDataLoadState extends HomeState {
 
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [productList, isLoadingApi, apiError];
 }
